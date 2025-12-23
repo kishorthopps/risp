@@ -1,0 +1,36 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+# Copy package files
+COPY package.json ./
+COPY package-lock.json* ./
+
+# Install dependencies but skip postinstall scripts (since we're using pre-built files)
+RUN npm install --legacy-peer-deps --ignore-scripts
+
+# Copy ALL pre-built files from .next
+COPY .next ./.next
+
+# Copy your source files that might be needed at runtime
+COPY lib ./lib
+
+# Copy config files if they exist
+COPY next.config.* ./
+COPY components.json ./
+
+# to include public assets (logos, static files)
+COPY public ./public
+
+# Ensure proper permissions
+RUN chown -R node:node /app
+USER node
+
+EXPOSE 3000
+
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+CMD ["npm", "start"]
